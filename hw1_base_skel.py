@@ -279,9 +279,9 @@ def execute_exp(args=None):
     predict_testing_vs_time = wandb.Table(data=data, columns=["time", "predicted acceleration"])
     data = [[x, y] for (x, y) in zip(time_testing, outs_testing)]
     actual_testing_vs_time = wandb.Table(data=data, columns=["time", "actual acceleration"])
-    wandb.log({"acceleration_vs_time": wandb.plot.line(predict_testing_vs_time, "time", "predicted_acceleration",
+    wandb.log({"acceleration_vs_time": wandb.plot.line(predict_testing_vs_time, "time", "predicted acceleration",
                                                        title="Acceleration vs Time")})
-    wandb.log({"acceleration_vs_time": wandb.plot.line(actual_testing_vs_time, "time", "actual_acceleration")})
+    wandb.log({"acceleration_vs_time": wandb.plot.line(actual_testing_vs_time, "time", "actual acceleration")})
         
     results['history'] = history.history
     
