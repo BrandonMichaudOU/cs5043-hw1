@@ -12,6 +12,7 @@ def make_plot():
     fig = plt.figure()
     plt.plot(obj['time_testing'], obj['predict_testing'])
     plt.plot(obj['time_testing'], obj['actual_testing'])
+    plt.xlim([1310, 1317])
     plt.ylabel('Elbow Acceleration')
     plt.xlabel('Time')
     plt.title('Elbow Acceleration vs Time')
