@@ -238,8 +238,8 @@ def execute_exp(args=None):
     rmse = tf.keras.metrics.RootMeanSquaredError()
 
     # Build the model: you are responsible for providing this function
-    model = deep_network_basic(ins_training.shape[1], args.hidden, outs_training.shape[1], activation=args.nonlinearity,
-                               activation_output=args.nonlinearity_output, lrate=args.lrate, metrics=[fvaf, rmse])
+    model = deep_network_basic(ins_training.shape[1], args.hidden, outs_training.shape[1], activation=args.activation_hidden,
+                               activation_output=args.activation_out, lrate=args.lrate, metrics=[fvaf, rmse])
     
     # Report if verbosity is turned on
     if args.verbose >= 1:
