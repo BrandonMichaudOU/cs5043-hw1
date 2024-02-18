@@ -13,12 +13,12 @@ def make_plot():
     fvafs_testing = np.empty((len(rotations), len(Ntraining)))
 
     for r in rotations:
-        for n in Ntraining:
-            with open(f'results/bmi__ddtheta_1_hidden_100_10_Ntraining_{n}_rotation_{r}_results.pkl', "rb") as fp:
+        for i, n in enumerate(Ntraining):
+            with open(f'results/bmi__ddtheta_1_hidden_100_10_JI_rotation_{r}_Ntraining_{n}_results.pkl', "rb") as fp:
                 results = pickle.load(fp)
-                fvafs_training[r][n] = results['predict_training_fvaf']
-                fvafs_validation[r][n] = results['predict_validation_fvaf']
-                fvafs_testing[r][n] = results['predict_testing_fvaf']
+                fvafs_training[r][i] = results['predict_training_fvaf']
+                fvafs_validation[r][i] = results['predict_validation_fvaf']
+                fvafs_testing[r][i] = results['predict_testing_fvaf']
 
     avg_fvafs_training = np.average(fvafs_training, axis=0)
     avg_fvafs_validation = np.average(fvafs_validation, axis=0)
