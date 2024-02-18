@@ -15,7 +15,6 @@ def make_plot():
     for r in rotations:
         for n in Ntraining:
             with open(f'bmi__ddtheta_1_hidden_100_10_Ntraining_{n}_rotation_{r}_results.pkl', "rb") as fp:
-                print(f'Ntraining_{n}_rotation_{r}')
                 results = pickle.load(fp)
                 fvafs_training[r][n] = results['predict_training_fvaf']
                 fvafs_validation[r][n] = results['predict_validation_fvaf']
@@ -37,5 +36,5 @@ def make_plot():
     fig.savefig('task2.png')
 
 
-if __name__ == '__main""':
+if __name__ == '__main__':
     make_plot()
