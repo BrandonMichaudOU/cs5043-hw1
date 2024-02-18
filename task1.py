@@ -8,7 +8,7 @@ def make_plot():
     with open("results/bmi__ddtheta_1_hidden_100_10_Ntraining_18_rotation_10_results.pkl", "rb") as fp:
         obj = pickle.load(fp)
 
-    # Create histogram
+    # Create line plot
     fig = plt.figure()
     plt.plot(obj['time_testing'], obj['predict_testing'], label='predicted')
     plt.plot(obj['time_testing'], obj['actual_testing'], label='actual')
