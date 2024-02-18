@@ -17,6 +17,7 @@ def make_plot():
     plt.xlabel('Time')
     plt.title('Elbow Acceleration vs Time')
     plt.legend()
+    fig.savefig('task1.png')
 
     # Initialize WandB
     wandb.init(project='hw1', name='task1_figure')
