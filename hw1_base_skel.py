@@ -276,7 +276,7 @@ def execute_exp(args=None):
 
     predict_testing = model.predict(ins_testing)
     wandb.log({"acceleration_vs_time": wandb.plot.line_series(
-        xs=time_testing,
+        xs=[time_testing, time_testing],
         ys=[predict_testing, outs_testing],
         keys=["predicted", "actual"],
         title="Acceleration vs Time",
