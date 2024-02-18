@@ -274,7 +274,11 @@ def execute_exp(args=None):
     results['predict_training'] = model.predict(ins_training)
     results['predict_training_eval'] = model.evaluate(ins_training, outs_training)
 
-    # TODO Log what you need
+    obj = {}
+    obj['predict_testing'] = model.predict(ins_testing)
+    obj['actual_testing'] = outs_testing
+    obj['time_testing'] = time_testing
+    wandb.log(obj)
         
     results['history'] = history.history
     
