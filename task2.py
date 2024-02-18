@@ -20,9 +20,9 @@ def make_plot():
                 fvafs_validation[r][n] = results['predict_validation_fvaf']
                 fvafs_testing[r][n] = results['predict_testing_fvaf']
 
-    avg_fvafs_training = np.average(fvafs_training)
-    avg_fvafs_validation = np.average(fvafs_validation)
-    avg_fvafs_testing = np.average(fvafs_testing)
+    avg_fvafs_training = np.average(fvafs_training, axis=0)
+    avg_fvafs_validation = np.average(fvafs_validation, axis=0)
+    avg_fvafs_testing = np.average(fvafs_testing, axis=0)
 
     # Create line plot
     fig = plt.figure()
