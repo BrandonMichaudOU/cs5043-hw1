@@ -6,8 +6,8 @@ Building predictors for brain-machine interfaces
 
 Author: Andrew H. Fagg
 Modified by: Alan Lee
+Modified by: Brandon Michaud
 '''
-# Standard libraries
 import tensorflow as tf
 import pandas as pd
 import numpy as np
@@ -23,6 +23,10 @@ import os
 import sys
 from tensorflow.keras.utils import plot_model
 
+from deep_networks import *
+from symbiotic_metrics import *
+from job_control import *
+
 
 # Location for libraries (you will likely just use './')
 tf_tools = "../../../../tf_tools/"
@@ -31,16 +35,7 @@ sys.path.append(tf_tools + "metrics")
 sys.path.append(tf_tools + "networks")
 sys.path.append(tf_tools + "experiment_control")
 
-# NOT PROVIDED (you will have to create your own...)
-from deep_networks import *
 
-# PROVIDED
-from symbiotic_metrics import *
-from job_control import *
-
-
-
-#################################################################
 def extract_data(bmi, args):
     '''
     Translate BMI data structure from the file into a data set for training/evaluating a single model
@@ -66,7 +61,7 @@ def extract_data(bmi, args):
     outs = bmi[args.output_type]
     
     # Check that predict_dim is valid
-    assert (args.predict_dim is None or (args.predict_dim >= 0 and args.predict_dim < outs[0].shape[1]))
+    assert (args.predict_dim is None or (0 <= args.predict_dim < outs[0].shape[1]))
     
     # Rotation and number of folds to use for training
     r = args.rotation
@@ -74,12 +69,11 @@ def extract_data(bmi, args):
     
     # Compute which folds belong in which set
     folds_training = (np.array(range(Ntraining)) + r) % Nfolds
-    folds_validation = (np.array([Nfolds-2]) + r ) % Nfolds
+    folds_validation = (np.array([Nfolds-2]) + r) % Nfolds
     folds_testing = (np.array([Nfolds-1]) + r) % Nfolds
     
     # Log these choices
-    folds = {'folds_training': folds_training, 'folds_validation': folds_validation,
-            'folds_testing': folds_testing}
+    folds = {'folds_training': folds_training, 'folds_validation': folds_validation, 'folds_testing': folds_testing}
     
     # Combine the folds into training/val/test data sets (pairs of input/output numpy arrays)
     ins_training = np.concatenate([ins[i] for i in folds_training], axis=0)
@@ -96,12 +90,12 @@ def extract_data(bmi, args):
     
     # If a particular output dimension is specified, then extract it from the outputs
     if args.predict_dim is not None:
-        outs_training = outs_training[:,[args.predict_dim]]
-        outs_validation = outs_validation[:,[args.predict_dim]]
-        outs_testing = outs_testing[:,[args.predict_dim]]
+        outs_training = outs_training[:, [args.predict_dim]]
+        outs_validation = outs_validation[:, [args.predict_dim]]
+        outs_testing = outs_testing[:, [args.predict_dim]]
     
-    return ins_training, outs_training, time_training, ins_validation, outs_validation, time_validation, ins_testing, outs_testing, time_testing, folds
-
+    return (ins_training, outs_training, time_training, ins_validation, outs_validation, time_validation, ins_testing,
+            outs_testing, time_testing, folds)
 
 
 def exp_type_to_hyperparameters(args):
@@ -111,14 +105,16 @@ def exp_type_to_hyperparameters(args):
     :param args: ArgumentParser
     :return: Hyperparameter set (in dictionary form)
     '''
-    # TODO (useful for having multiple Cartesian product parameter sets)
-    
     if args.exp_type == 'bmi':
-        # TODO
+        p = {
+            'rotation': range(20),
+            'Ntraining': [1, 2, 3, 4, 5, 9, 13, 18]
+        }
     else: 
         assert False, "Bad exp_type"
 
     return p
+
 
 def augment_args(args):
     '''
@@ -127,9 +123,9 @@ def augment_args(args):
     @return A string representing the selection of parameters to be used in the file name
     '''
     index = args.exp_index
-    if(index is None):
+    if index is None:
         # UPDATE
-        return "Ntraining_%d_rotation_%d"%(args.Ntraining, args.rotation)
+        return "Ntraining_%d_rotation_%d" % (args.Ntraining, args.rotation)
     
     # Create parameter sets to execute the experiment on.  This defines the Cartesian product
     #  of experiments that we will be executing
@@ -140,14 +136,15 @@ def augment_args(args):
     print("Total jobs:", ji.get_njobs())
     
     # Check bounds
-    assert (args.exp_index >= 0 and args.exp_index < ji.get_njobs()), "exp_index out of range"
+    assert (0 <= args.exp_index < ji.get_njobs()), "exp_index out of range"
 
     # Print the parameters specific to this exp_index
     print(ji.get_index(args.exp_index))
     
     # Push the attributes to the args object and return a string that describes these structures
     return ji.set_attributes_by_index(args.exp_index, args)
-    
+
+
 def generate_fname(args, params_str):
     '''
     Generate the base file name for output files/directories.
@@ -164,20 +161,19 @@ def generate_fname(args, params_str):
     if args.predict_dim is None:
         predict_str = args.output_type
     else:
-        predict_str = '%s_%d'%(args.output_type, args.predict_dim)
+        predict_str = '%s_%d' % (args.output_type, args.predict_dim)
 
     if args.L1_regularization is not None:
-        Lx_str = '_L1_%f'%args.L1_regularization
+        Lx_str = '_L1_%f' % args.L1_regularization
         
     elif args.L2_regularization is not None:
-        Lx_str = '_L2_%f'%args.L2_regularization
+        Lx_str = '_L2_%f' % args.L2_regularization
     else:
         Lx_str = ''
         
     # Put it all together, including #of training folds and the experiment rotation
-    return "%s/%s_%s_%s%s_hidden_%s_%s"%(args.results_path, args.exp_type, args.label,
-                                       predict_str, Lx_str, hidden_str, params_str)
-
+    return "%s/%s_%s_%s%s_hidden_%s_%s" % (args.results_path, args.exp_type, args.label, predict_str, Lx_str,
+                                           hidden_str, params_str)
 
 
 def execute_exp(args=None):
@@ -189,7 +185,7 @@ def execute_exp(args=None):
     # Check the arguments
     if args is None:
         # Case where no args are given (usually, because we are calling from within Jupyter)
-        #  In this situation, we just use the default arguments
+        # In this situation, we just use the default arguments
         parser = create_parser()
         args = parser.parse_args([])
         
@@ -204,7 +200,7 @@ def execute_exp(args=None):
     print("File name base:", fbase)
 
     # Output pickle file name
-    fname_out = "%s_results.pkl"%(fbase)
+    fname_out = "%s_results.pkl" % fbase
 
     # Check if this file exists
     if os.path.exists(fname_out):
@@ -220,18 +216,18 @@ def execute_exp(args=None):
     assert bmi is not None, "Unable to load data"
 
     # Extract the data sets.  This process uses rotation and Ntraining (among other exp args)
-    ins_training, outs_training, time_training, ins_validation, outs_validation, time_validation, ins_testing, outs_testing, time_testing, folds = extract_data(bmi, args)
-    
+    (ins_training, outs_training, time_training, ins_validation, outs_validation, time_validation, ins_testing,
+     outs_testing, time_testing, folds) = extract_data(bmi, args)
 
     # Is this a test run?
-    if(args.nogo):
+    if args.nogo:
         # Don't execute the experiment
         print("Test run only")
         return None
     
     # Start wandb
     run = wandb.init(project=args.project,
-                     # TODO
+                     name=fbase,  # TODO
                      notes=fbase,
                      config=vars(args))
     # Log hostname
@@ -242,22 +238,22 @@ def execute_exp(args=None):
     rmse = tf.keras.metrics.RootMeanSquaredError()
 
     # Build the model: you are responsible for providing this function
-    # TODO
-    model = deep_network_basic(#TODO
-                               metrics=[fvaf, rmse])
+    model = deep_network_basic(ins_training.shape[1], args.hidden, outs_training.shape[1], activation=args.nonlinearity,
+                               activation_output=args.nonlinearity_output, lrate=args.lrate, metrics=[fvaf, rmse])
     
     # Report if verbosity is turned on
     if args.verbose >= 1:
         print(model.summary())
 
     if args.render:
-        fname = '%s_model_plot.png'%fbase
+        fname = '%s_model_plot.png' % fbase
         plot_model(model, to_file=fname, show_shapes=True, show_layer_names=True)
         wandb.log({'model architecture': wandb.Image(fname)})
     
     # Callbacks
     cbs = []
-    early_stopping_cb = keras.callbacks.EarlyStopping(#TODO)
+    early_stopping_cb = keras.callbacks.EarlyStopping(min_delta=args.min_delta, patience=args.patience,
+                                                      verbose=args.verbose)
     cbs.append(early_stopping_cb)
 
     # WandB callback
@@ -267,7 +263,7 @@ def execute_exp(args=None):
     # Learn
     history = model.fit(x=ins_training, y=outs_training,
                         epochs=args.epochs,
-                        verbose=args.verbose>=2,
+                        verbose=args.verbose >= 2,
                         validation_data=(ins_validation, outs_validation), 
                         callbacks=cbs)
         
@@ -279,7 +275,6 @@ def execute_exp(args=None):
     results['predict_training_eval'] = model.evaluate(ins_training, outs_training)
 
     # TODO Log what you need
-
         
     results['history'] = history.history
     
@@ -290,17 +285,16 @@ def execute_exp(args=None):
     
     # Save the model (can't be included in the pickle file)
     if args.save:
-        model.save("%s_model"%(fbase))
+        model.save("%s_model" % fbase)
         
     return model
-               
+
+
 def create_parser():
     '''
     You will only use some of the arguments for HW1
     '''
     # Parse the command-line arguments
-
-    
     parser = argparse.ArgumentParser(description='BMI Learner', fromfile_prefix_chars='@')
 
     # Problem definition
@@ -327,7 +321,7 @@ def create_parser():
     # Training parameters
     parser.add_argument('--lrate', type=float, default=0.001, help="Learning rate")
 
-    ## Don't use these for HW 1
+    # Don't use these for HW 1
     parser.add_argument('--dropout', type=float, default=None, help="Dropout rate")
     parser.add_argument('--L1_regularization', '--l1', type=float, default=None, help="L1 regularization factor (only active if no L2)")
     parser.add_argument('--L2_regularization', '--l2', type=float, default=None, help="L2 regularization factor")
@@ -346,7 +340,6 @@ def create_parser():
     
     parser.add_argument('--save', action='store_true', help='Save model')
     parser.add_argument('--render', action='store_true', help='Render the model')
-    
 
     # Execution control
     parser.add_argument('--nogo', action='store_true', help='Do not perform the experiment')
@@ -357,13 +350,15 @@ def create_parser():
     
     return parser
 
+
 def check_args(args):
     '''
-    Check that key arguments are within appropriate bounds.  Failing an assert causes a hard failure with meaningful output
+    Check that key arguments are within appropriate bounds.
+    Failing an assert causes a hard failure with meaningful output
     '''
-    assert (args.rotation >= 0 and args.rotation < args.Nfolds), "Rotation must be between 0 and Nfolds"
-    assert (args.Ntraining >= 1 and args.Ntraining <= (args.Nfolds-2)), "Ntraining must be between 1 and Nfolds-2"
-    assert (args.lrate > 0.0 and args.lrate < 1), "Lrate must be between 0 and 1"
+    assert (0 <= args.rotation < args.Nfolds), "Rotation must be between 0 and Nfolds"
+    assert (1 <= args.Ntraining <= (args.Nfolds - 2)), "Ntraining must be between 1 and Nfolds-2"
+    assert (0.0 < args.lrate < 1), "Lrate must be between 0 and 1"
 
 
 def check_completeness(args):
@@ -375,16 +370,14 @@ def check_completeness(args):
     Prints a report of the missing runs, including both the exp_index and the name of the missing results file
 
     :param args: ArgumentParser
-    
     '''
-    
     # Get the corresponding hyperparameters
     p = exp_type_to_hyperparameters(args)
 
     # Create the iterator
     ji = JobIterator(p)
 
-    print("Total jobs: %d"%ji.get_njobs())
+    print("Total jobs: %d" % ji.get_njobs())
 
     print("MISSING RUNS:")
 
@@ -400,13 +393,13 @@ def check_completeness(args):
 
         if not os.path.exists(fname_out):
             # Results file does not exist: report it
-            print("%3d\t%s"%(i, fname_out))
+            print("%3d\t%s" % (i, fname_out))
             indices.append(i)
 
     # Give the list of indices that can be inserted into the --array line of the batch file
-    print("Missing indices (%d): %s"%(len(indices),','.join(str(x) for x in indices)))
+    print("Missing indices (%d): %s" % (len(indices), ','.join(str(x) for x in indices)))
 
-#################################################################
+
 if __name__ == "__main__":
     parser = create_parser()
     args = parser.parse_args()
@@ -417,16 +410,15 @@ if __name__ == "__main__":
         tf.config.set_visible_devices([], 'GPU')
         print('NO VISIBLE DEVICES!!!!')
 
-
     # GPU check
     visible_devices = tf.config.get_visible_devices('GPU')
     n_visible_devices = len(visible_devices)
 
     print('GPUS:', visible_devices)
-    if(n_visible_devices > 0):
+    if n_visible_devices > 0:
         for device in visible_devices:
             tf.config.experimental.set_memory_growth(device, True)
-        print('We have %d GPUs\n'%n_visible_devices)
+        print('We have %d GPUs\n' % n_visible_devices)
     else:
         print('NO GPU')
 
@@ -436,7 +428,7 @@ if __name__ == "__main__":
         tf.config.threading.set_inter_op_parallelism_threads(args.cpus_per_task)
 
     # Which job to do?
-    if(args.check):
+    if args.check:
         # Just look at which results files have NOT been created yet
         check_completeness(args)
     else:

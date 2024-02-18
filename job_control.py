@@ -19,9 +19,9 @@ ji = JobIterator(p)
 #  are the keys from p and the values are the specific combination
 #  of values in the ith element
 ji.set_attributes_by_index(i, obj)
-            
 '''
 from itertools import product
+
 
 class JobIterator():
     def __init__(self, params):
@@ -32,7 +32,7 @@ class JobIterator():
         '''
         self.params = params
         # List of all combinations of parameter values
-        self.product = list(dict(zip(params,x))for x in product(*params.values()) )
+        self.product = list(dict(zip(params, x)) for x in product(*params.values()))
         # Iterator over the combinations 
         self.iter = (dict(zip(params,x))for x in product(*params.values()))
         
