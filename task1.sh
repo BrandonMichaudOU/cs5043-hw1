@@ -18,4 +18,4 @@
 conda activate tf
 
 python hw1_base_skel.py --project 'hw1' --output_type 'ddtheta' --predict_dim 1 --rotation 10 --Ntraining 18 --lrate 0.0001 --activation_hidden 'elu' --activation_out 'linear' --hidden 100 10 --epochs 100 --min_delta 0.001 --patience 25 -vv
-#python task1.py
+python task1.py

@@ -5,14 +5,14 @@ import socket
 
 
 def make_plot():
-    with open("results/bmi__torque_1_hidden_100_10_Ntraining_18_rotation_10_results.pkl", "rb") as fp:
+    with open("results/bmi__ddtheta_1_hidden_100_10_Ntraining_18_rotation_10_results.pkl", "rb") as fp:
         obj = pickle.load(fp)
 
     # Create histogram
     fig = plt.figure()
     plt.plot(obj['time_testing'], obj['predict_testing'], label='predicted')
     plt.plot(obj['time_testing'], obj['actual_testing'], label='actual')
-    plt.xlim([1310, 1317])
+    # plt.xlim([1310, 1317])
     plt.ylabel('Elbow Acceleration')
     plt.xlabel('Time')
     plt.title('Elbow Acceleration vs Time')
