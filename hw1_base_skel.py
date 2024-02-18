@@ -275,14 +275,13 @@ def execute_exp(args=None):
     results['predict_training_eval'] = model.evaluate(ins_training, outs_training)
 
     predict_testing = model.predict(ins_testing)
-    data = [[x, y] for (x, y) in zip(time_testing, predict_testing)]
-    predict_testing_vs_time = wandb.Table(data=data, columns=["time", "predicted acceleration"])
-    data = [[x, y] for (x, y) in zip(time_testing, outs_testing)]
-    actual_testing_vs_time = wandb.Table(data=data, columns=["time", "actual acceleration"])
-    wandb.log({"acceleration_vs_time": wandb.plot.line(predict_testing_vs_time, "time", "predicted acceleration",
-                                                       title="Acceleration vs Time")})
-    wandb.log({"acceleration_vs_time": wandb.plot.line(actual_testing_vs_time, "time", "actual acceleration")})
-        
+    wandb.log({"acceleration_vs_time": wandb.plot.line_series(
+        xs=time_testing,
+        ys=[predict_testing, outs_testing],
+        keys=["predicted", "actual"],
+        title="Acceleration vs Time",
+        xname="Time")})
+
     results['history'] = history.history
     
     # Save results
