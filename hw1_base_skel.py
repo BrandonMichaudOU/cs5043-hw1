@@ -271,14 +271,15 @@ def execute_exp(args=None):
     results = {}
     results['args'] = args
 
-    results['predict_training'] = model.predict(ins_training)
-    results['predict_training_eval'] = model.evaluate(ins_training, outs_training)
-
+    # Task 1
     results['predict_testing'] = model.predict(ins_testing)
     results['actual_testing'] = outs_testing
     results['time_testing'] = time_testing
 
-    results['history'] = history.history
+    # Task 2
+    results['predict_training_fvaf'] = model.evaluate(ins_training, outs_training)[1]
+    results['predict_validation_fvaf'] = model.evaluate(ins_validation, outs_validation)[1]
+    results['predict_testing_fvaf'] = model.evaluate(ins_testing, outs_testing)[1]
     
     # Save results
     results['fname_base'] = fbase
@@ -348,7 +349,7 @@ def create_parser():
     parser.add_argument('--check', action='store_true', help='Check results for completeness')
 
     # WandB
-    parser.add_argument('--project', type=str, default='HW1', help='WandB project name')
+    parser.add_argument('--project', type=str, default='hw1', help='WandB project name')
     
     return parser
 
