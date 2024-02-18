@@ -227,7 +227,7 @@ def execute_exp(args=None):
     
     # Start wandb
     run = wandb.init(project=args.project,
-                     name=fbase,  # TODO
+                     name=params_str,  # TODO
                      notes=fbase,
                      config=vars(args))
     # Log hostname
