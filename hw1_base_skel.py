@@ -252,8 +252,8 @@ def execute_exp(args=None):
     
     # Callbacks
     cbs = []
-    early_stopping_cb = keras.callbacks.EarlyStopping(min_delta=args.min_delta, patience=args.patience,
-                                                      verbose=args.verbose)
+    early_stopping_cb = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=args.min_delta,
+                                                      patience=args.patience, verbose=args.verbose, mode='min')
     cbs.append(early_stopping_cb)
 
     # WandB callback
@@ -274,10 +274,9 @@ def execute_exp(args=None):
     results['predict_training'] = model.predict(ins_training)
     results['predict_training_eval'] = model.evaluate(ins_training, outs_training)
 
-    predict_testing = model.predict(ins_testing)
-    data = [[x, y] for (x, y) in zip(time_testing, predict_testing)]
-    table = wandb.Table(data=data, columns=["time", "prediction"])
-    wandb.log({"acceleration_vs_time": wandb.plot.line(table, "time", "prediction", title="Acceleration vs Time")})
+    results['predict_testing'] = model.predict(ins_testing)
+    results['actual_testing'] = outs_testing
+    results['time_testing'] = time_testing
 
     results['history'] = history.history
     
