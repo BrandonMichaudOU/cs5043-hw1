@@ -8,7 +8,7 @@
 #SBATCH --mem=1G
 #SBATCH --output=outputs/hw1_%j_stdout.txt
 #SBATCH --error=outputs/hw1_%j_stderr.txt
-#SBATCH --time=00:05:00
+#SBATCH --time=00:02:00
 #SBATCH --job-name=hw1
 #SBATCH --mail-user=brandondmichaud@ou.edu
 #SBATCH --mail-type=ALL
@@ -17,4 +17,5 @@
 . /home/fagg/tf_setup.sh
 conda activate tf
 
-python hw1_base_skel.py --project 'hw1' --predict_dim 1 --rotation 10 --Ntraining 18 --lrate 0.0001 --activation_hidden 'elu' --activation_out 'linear' --hidden 100 10 --epochs 100 --min_delta 0.001 --patience 25 -vv
+#python hw1_base_skel.py --project 'hw1' --predict_dim 1 --rotation 10 --Ntraining 18 --lrate 0.0001 --activation_hidden 'elu' --activation_out 'linear' --hidden 100 10 --epochs 100 --min_delta 0.001 --patience 25 -vv
+python task1.py
