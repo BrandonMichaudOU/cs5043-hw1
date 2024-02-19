@@ -8,12 +8,8 @@ Author: Andrew H. Fagg
 Modified by: Alan Lee
 Modified by: Brandon Michaud
 '''
-import tensorflow as tf
-import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from tensorflow import keras
-import time
 import wandb
 import socket
 
@@ -237,7 +233,7 @@ def execute_exp(args=None):
     fvaf = FractionOfVarianceAccountedForSingle(outs_training.shape[1])
     rmse = tf.keras.metrics.RootMeanSquaredError()
 
-    # Build the model: you are responsible for providing this function
+    # Build the model
     model = deep_network_basic(ins_training.shape[1], args.hidden, outs_training.shape[1], activation=args.activation_hidden,
                                activation_output=args.activation_out, lrate=args.lrate, metrics=[fvaf, rmse])
     
@@ -271,12 +267,12 @@ def execute_exp(args=None):
     results = {}
     results['args'] = args
 
-    # Task 1
+    # Task 1 data
     results['predict_testing'] = model.predict(ins_testing)
     results['actual_testing'] = outs_testing
     results['time_testing'] = time_testing
 
-    # Task 2
+    # Task 2 data
     results['predict_training_fvaf'] = model.evaluate(ins_training, outs_training)[1]
     results['predict_validation_fvaf'] = model.evaluate(ins_validation, outs_validation)[1]
     results['predict_testing_fvaf'] = model.evaluate(ins_testing, outs_testing)[1]
@@ -289,6 +285,9 @@ def execute_exp(args=None):
     # Save the model (can't be included in the pickle file)
     if args.save:
         model.save("%s_model" % fbase)
+
+    # Close WandB
+    wandb.finish()
         
     return model
 

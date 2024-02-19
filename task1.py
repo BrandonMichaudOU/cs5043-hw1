@@ -1,10 +1,13 @@
 import matplotlib.pyplot as plt
 import pickle
-import wandb
-import socket
 
 
 def make_plot():
+    '''
+    Function to make plot of elbow acceleration vs time
+    Displays both actual and predicted
+    '''
+    # Open results for task 1
     with open("results/bmi__ddtheta_1_hidden_100_10_Ntraining_18_rotation_10_results.pkl", "rb") as fp:
         obj = pickle.load(fp)
 
@@ -18,16 +21,6 @@ def make_plot():
     plt.title('Elbow Acceleration vs Time')
     plt.legend()
     fig.savefig('task1.png')
-
-    # Initialize WandB
-    wandb.init(project='hw1', name='task1_figure')
-
-    # Log histogram to WandB
-    wandb.log({'hostname': socket.gethostname()})
-    wandb.log({'figure': fig})
-
-    # Close WandB
-    wandb.finish()
 
 
 if __name__ == '__main__':
